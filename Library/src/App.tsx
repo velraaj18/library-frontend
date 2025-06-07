@@ -5,12 +5,18 @@ import 'primereact/resources/themes/lara-light-blue/theme.css';
 import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
 import Home from './components/Home';
-
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
 const App = () => {
   return (
     <>
-        <Home />
+        <BrowserRouter>
+          <Routes>
+            <Route path='/' element = {<Home/>}/>
+            <Route path='/register' element = {<Register/>} />
+            <Route path= '/login' element = {<Login/>} />
+          </Routes>
+        </BrowserRouter>
     </>
   )
 }
