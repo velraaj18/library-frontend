@@ -7,8 +7,8 @@ import { Toast } from "primereact/toast";
 import { Card } from "primereact/card";
 import { InputText } from "primereact/inputtext";
 import { Button } from "primereact/button";
-import { Message } from "primereact/message";
 import { Password } from "primereact/password";
+import type { User } from "../interface/User";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -19,8 +19,6 @@ const Login = () => {
     email: "",
     password: "",
   });
-
- 
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
@@ -36,15 +34,21 @@ const Login = () => {
       const response = await axios.post(
         "http://localhost:5001/api/auth/login",
         formData
-      );
+      );      
+
+      localStorage.setItem("token", response.data.jwtToken);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+
       toast.current?.show({
         severity: "success",
         detail: response.data.message || "Logged in successfully",
         summary: "success",
-        life: 5000,        
+        life: 5000,
       });
-      console.log(response.data.message)
+
+      console.log(response.data.message);
       setFormData({ email: "", password: "" }); // Clear form
+      navigate("/");
     } catch (error: any) {
       toast.current?.show({
         severity: "error",
@@ -52,7 +56,7 @@ const Login = () => {
         summary: "error",
         life: 5000,
       });
-      console.log(error.response?.data?.message)
+      console.log(error.response?.data?.message);
     }
   };
 
@@ -85,8 +89,8 @@ const Login = () => {
             </div>
             <br />
             <Button type="submit" label="Login" className="mt-3" />
-            <br />     
-            <br />       
+            <br />
+            <br />
             <p className=" text-teal-500">
               New User?{" "}
               <span
