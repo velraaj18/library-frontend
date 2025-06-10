@@ -8,7 +8,6 @@ import { Card } from "primereact/card";
 import { InputText } from "primereact/inputtext";
 import { Button } from "primereact/button";
 import { Password } from "primereact/password";
-import type { User } from "../interface/User";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -36,8 +35,7 @@ const Login = () => {
         formData
       );      
 
-      localStorage.setItem("token", response.data.jwtToken);
-      localStorage.setItem("user", JSON.stringify(response.data.user));
+      localStorage.setItem("token", response.data.jwtToken);      
 
       toast.current?.show({
         severity: "success",

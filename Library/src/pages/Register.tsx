@@ -42,6 +42,7 @@ export const Register = () => {
         text: response.data.message || "User registered successfully",
       });
       setFormData({ name: "", email: "", password: "" }); // Clear form
+      navigate('/')
     } catch (error: any) {
       setMessage({
         type: "error",

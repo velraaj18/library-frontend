@@ -15,13 +15,18 @@ const NavBar = () => {
     const token = localStorage.getItem("token");
     if (isTokenValid(token)) {
       const user = getUserFromToken();
-      console.log(user);
-      
-      setUserName(user?.name || null);
+      setUserName(user?.name || null);     
     } else {
       setUserName(null);
     }
   }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setUserName(null);
+    navigate("/login");
+  };
 
   const items: MenuItem[] = [
     {
@@ -76,12 +81,12 @@ const NavBar = () => {
     <div className="flex gap-2">
       {userName ? (
         <>
-          <span className="p-mr-2 font-medium text-blue-600">Hello, {userName}</span>
+          <span className="p-mr-2 mt-2 font-medium text-blue-600">Hello, {userName}</span>
           <Button
             label="Logout"
             icon="pi pi-sign-out"
             className="p-button-sm p-button-danger"
-            
+            onClick={handleLogout}
           />
         </>
       ) : (
