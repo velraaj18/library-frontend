@@ -7,37 +7,55 @@ import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
 import { Checkbox } from "primereact/checkbox";
 import { Calendar } from "primereact/calendar";
+import { DataTable } from 'primereact/datatable';
+import { Column } from 'primereact/column';
+        
 import type { Task } from "../interface/Task";
+import {
+  TaskStatus,
+  TaskPriority,
+} from "../../../../Backend/src/enums/taskEnums";
 
 const TaskPage = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    priority: "Medium",
+    priority: TaskPriority,
     isCompleted: false,
     dueDate: new Date(),
-    status: "Pending",
+    status: TaskStatus,
   });
   const [modalVisible, setModalVisible] = useState(false);
   const toast = useRef<Toast>(null);
+
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     fetchTasks();
   }, []);
 
   const fetchTasks = async () => {
-    try {
-      const response = await axios.get(
-        "http://localhost:5001/api/task/"
-      );
-      if (response.data) {
-        setTasks(response.data.tasks);
-      }
-    } catch (error) {
-      console.error("Error fetching tasks:", error);
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.get("http://localhost:5001/api/task/", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    console.log("API Response:", response.data); // Debugging: Log response format
+
+    if (Array.isArray(response.data)) {  
+      setTasks(response.data); // Directly assign the array
+    } else {
+      console.error("Unexpected response format:", response.data);
+      setTasks([]); // Fallback to empty array
     }
-  };
+  } catch (error) {
+    console.error("Error fetching tasks:", error);
+    setTasks([]); // Ensure tasks is never undefined
+  }
+};
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -46,8 +64,12 @@ const TaskPage = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:5001/api/task/createTask", formData);
-      console.log(formData)
+      await axios.post("http://localhost:5001/api/task/createTask", formData, {
+        headers: {
+          Authorization: `Bearer ${token}`, // ✅ Include Bearer token
+          "Content-Type": "application/json",
+        },
+      });
       toast.current?.show({
         severity: "success",
         detail: "Task Created successfully",
@@ -79,18 +101,16 @@ const TaskPage = () => {
         />
       </div>
 
-      {/* Task List */}
-      <ul className="border rounded-lg p-4 bg-white shadow-md">
-        {tasks.length > 0 ? (
-          tasks.map((task) => (
-            <li key={task.userId} className="border-b py-2">
-              <span className="font-medium">{task.title}</span> - {task.status}
-            </li>
-          ))
-        ) : (
-          <p>No tasks found.</p>
-        )}
-      </ul>
+      {/* Task Table */}
+      <DataTable value={tasks} paginator rows={5} className="shadow-md rounded-lg">
+        <Column field="title" header="Title" sortable filter />
+        <Column field="description" header="Description" sortable filter />
+        <Column field="priority" header="Priority" sortable filter />
+        <Column field="status" header="Status" sortable filter />
+        <Column field="dueDate" header="Due Date" sortable filter body={(rowData) => new Date(rowData.dueDate).toLocaleString()} />
+        <Column field="dateCreated" header="Created At" sortable filter body={(rowData) => new Date(rowData.dateCreated).toLocaleString()} />
+        <Column field="isCompleted" header="Completed" body={(rowData) => (rowData.isCompleted ? "✅ Yes" : "❌ No")} />
+      </DataTable>
 
       {/* Task Creation Modal */}
       <Dialog
@@ -118,9 +138,23 @@ const TaskPage = () => {
           <Dropdown
             name="priority"
             value={formData.priority}
-            options={["Low", "Medium", "High"]}
+            options={Object.values(TaskPriority).map((value) => ({
+              label: value,
+              value,
+            }))}
             onChange={(e) => setFormData({ ...formData, priority: e.value })}
-            placeholder="Priority"
+            placeholder="Select Priority"
+          />
+
+          <Dropdown
+            name="status"
+            value={formData.status}
+            options={Object.values(TaskStatus).map((value) => ({
+              label: value,
+              value,
+            }))}
+            onChange={(e) => setFormData({ ...formData, status: e.value })}
+            placeholder="Select Status"
           />
 
           <Checkbox
@@ -129,13 +163,16 @@ const TaskPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, isCompleted: e.checked ?? false })
             }
+            name="Completed"
           />
           <label htmlFor="isCompleted">Completed</label>
 
           <Calendar
             name="dueDate"
             value={formData.dueDate}
-            onChange={(e) => setFormData({ ...formData, dueDate: e.value ?? new Date()})}
+            onChange={(e) =>
+              setFormData({ ...formData, dueDate: e.value ?? new Date() })
+            }
             showIcon
           />
 

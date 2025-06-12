@@ -22,9 +22,9 @@ const App = () => {
               </ProtectedRoute>
             }
           />
-          <Route path="/register" element={<Register />} />
+          <Route path="/register" element={<Register/>} />
           <Route path="/login" element={<Login />} />
-          <Route path="/task" element={<Task/>}/>
+          <Route path="/task" element={<ProtectedRoute><Task/></ProtectedRoute>}/>
         </Routes>
       </BrowserRouter>
     </>
