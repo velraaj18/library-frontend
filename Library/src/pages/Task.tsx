@@ -102,14 +102,14 @@ const TaskPage = () => {
       </div>
 
       {/* Task Table */}
-      <DataTable value={tasks} paginator rows={5} className="shadow-md rounded-lg">
+      <DataTable value={tasks} paginator rows={5} className="shadow-md rounded-lg bg-white dark:bg-black" size="normal">
         <Column field="title" header="Title" sortable filter />
         <Column field="description" header="Description" sortable filter />
         <Column field="priority" header="Priority" sortable filter />
         <Column field="status" header="Status" sortable filter />
         <Column field="dueDate" header="Due Date" sortable filter body={(rowData) => new Date(rowData.dueDate).toLocaleString()} />
         <Column field="dateCreated" header="Created At" sortable filter body={(rowData) => new Date(rowData.dateCreated).toLocaleString()} />
-        <Column field="isCompleted" header="Completed" body={(rowData) => (rowData.isCompleted ? "✅ Yes" : "❌ No")} />
+        <Column field="isCompleted" header="Completed" body={(rowData) => (rowData.isCompleted ? "Yes" : "No")} />
       </DataTable>
 
       {/* Task Creation Modal */}
