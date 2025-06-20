@@ -15,6 +15,9 @@ import {
   TaskStatus,
   TaskPriority,
 } from "../../../../Backend/src/enums/taskEnums";
+import DataTableComponent from "../components/DataTable";
+import GenerateColumns from "../utils/DataTableUtils";
+import type { DataTableColumns } from "../interface/DataTableColumns";
 
 const TaskPage = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -26,10 +29,11 @@ const TaskPage = () => {
     dueDate: new Date(),
     status: TaskStatus,
   });
-  const [modalVisible, setModalVisible] = useState(false);
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
   const toast = useRef<Toast>(null);
 
   const token = localStorage.getItem("token");
+  const [dynamicColumns, setDynamicColumns ] = useState<DataTableColumns<Task>[]>([]);
 
   useEffect(() => {
     fetchTasks();
@@ -42,19 +46,34 @@ const TaskPage = () => {
       headers: { Authorization: `Bearer ${token}` },
     });
 
-    console.log("API Response:", response.data); // Debugging: Log response format
+    setTasks(response.data); // Directly assign the array
 
-    if (Array.isArray(response.data)) {  
-      setTasks(response.data); // Directly assign the array
-    } else {
-      console.error("Unexpected response format:", response.data);
-      setTasks([]); // Fallback to empty array
-    }
-  } catch (error) {
+    // Creating body templates on how to show them on the grid.
+    const bodyTemplates = {
+      dueDate: (row: Task) => new Date(row.dueDate).toLocaleDateString(),
+      dateCreated: (row: Task) => new Date(row.dueDate).toLocaleDateString(),
+      isCompleted: (row: Task) => (
+        <span className={row.isCompleted ? "text-green-600" : "text-red-500"}>
+          {row.isCompleted ? "Yes" : "No"}
+        </span>
+      ),
+    };
+
+    // Generating dynamic columns using the returned data fields.
+    setDynamicColumns(
+      GenerateColumns<Task>(
+        response.data[0],
+        ["userId", "_id", "__v"],
+        bodyTemplates
+      )
+    );
+  } 
+   catch (error) {
     console.error("Error fetching tasks:", error);
     setTasks([]); // Ensure tasks is never undefined
   }
-};
+}
+
 
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -102,7 +121,7 @@ const TaskPage = () => {
       </div>
 
       {/* Task Table */}
-      <DataTable value={tasks} paginator rows={5} className="shadow-md rounded-lg bg-white dark:bg-black" size="normal">
+      {/* <DataTable value={tasks} paginator rows={5} stripedRows showGridlines editMode="cell" className="shadow-md rounded-lg bg-white dark:bg-black" size="normal">
         <Column field="title" header="Title" sortable filter />
         <Column field="description" header="Description" sortable filter />
         <Column field="priority" header="Priority" sortable filter />
@@ -110,7 +129,9 @@ const TaskPage = () => {
         <Column field="dueDate" header="Due Date" sortable filter body={(rowData) => new Date(rowData.dueDate).toLocaleString()} />
         <Column field="dateCreated" header="Created At" sortable filter body={(rowData) => new Date(rowData.dateCreated).toLocaleString()} />
         <Column field="isCompleted" header="Completed" body={(rowData) => (rowData.isCompleted ? "Yes" : "No")} />
-      </DataTable>
+      </DataTable> */}
+
+      <DataTableComponent value={tasks} columns={dynamicColumns} paginator = {true} />
 
       {/* Task Creation Modal */}
       <Dialog
