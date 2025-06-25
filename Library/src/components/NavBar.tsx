@@ -38,7 +38,7 @@ const NavBar = () => {
 
   const toggleDarkMode = (val: boolean) => {
     console.log(val);
-    
+
     setDarkMode(val);
     if (val) {
       document.documentElement.classList.add("dark");
@@ -71,7 +71,10 @@ const NavBar = () => {
       <OverlayPanel ref={op} id="overlay_panel" className="p-3">
         <div className="flex items-center gap-2">
           <span>Dark Mode</span>
-          <InputSwitch checked={darkMode} onChange={(e) => toggleDarkMode(e.value)} />
+          <InputSwitch
+            checked={darkMode}
+            onChange={(e) => toggleDarkMode(e.value)}
+          />
         </div>
       </OverlayPanel>
 
@@ -106,7 +109,7 @@ const NavBar = () => {
 
   return (
     <div className="card">
-      <Menubar model={items} end={end} />
+      <Menubar model={items} end={end} className="dark: bg-cyan-950" />
     </div>
   );
 };

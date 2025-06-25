@@ -1,4 +1,5 @@
 import type { DataTableColumns } from "./DataTableColumns";
+import type { MenuItem } from "primereact/menuitem";
 
 export interface DataTableProps<T> {
   value: T[];
@@ -7,4 +8,7 @@ export interface DataTableProps<T> {
   rows?: number;
   globalFilter?: boolean;
   title?: string;
+  contextMenuModel? : MenuItem[];
+  contextMenuSelection? : T | null;
+  onContextMenuSelectionChange?: (value: T | null) => void;
 }

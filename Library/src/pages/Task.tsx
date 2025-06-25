@@ -7,9 +7,7 @@ import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
 import { Checkbox } from "primereact/checkbox";
 import { Calendar } from "primereact/calendar";
-import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact/column';
-        
+
 import type { Task } from "../interface/Task";
 import {
   TaskStatus,
@@ -18,6 +16,7 @@ import {
 import DataTableComponent from "../components/DataTable";
 import GenerateColumns from "../utils/DataTableUtils";
 import type { DataTableColumns } from "../interface/DataTableColumns";
+import type { MenuItem } from "primereact/menuitem";
 
 const TaskPage = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -33,48 +32,47 @@ const TaskPage = () => {
   const toast = useRef<Toast>(null);
 
   const token = localStorage.getItem("token");
-  const [dynamicColumns, setDynamicColumns ] = useState<DataTableColumns<Task>[]>([]);
+  const [dynamicColumns, setDynamicColumns] = useState<
+    DataTableColumns<Task>[]
+  >([]);
 
   useEffect(() => {
     fetchTasks();
   }, []);
 
   const fetchTasks = async () => {
-  try {
-    const token = localStorage.getItem("token");
-    const response = await axios.get("http://localhost:5001/api/task/", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get("http://localhost:5001/api/task/", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-    setTasks(response.data); // Directly assign the array
+      setTasks(response.data); // Directly assign the array
 
-    // Creating body templates on how to show them on the grid.
-    const bodyTemplates = {
-      dueDate: (row: Task) => new Date(row.dueDate).toLocaleDateString(),
-      dateCreated: (row: Task) => new Date(row.dueDate).toLocaleDateString(),
-      isCompleted: (row: Task) => (
-        <span className={row.isCompleted ? "text-green-600" : "text-red-500"}>
-          {row.isCompleted ? "Yes" : "No"}
-        </span>
-      ),
-    };
+      // Creating body templates on how to show them on the grid.
+      const bodyTemplates = {
+        dueDate: (row: Task) => new Date(row.dueDate).toLocaleDateString(),
+        dateCreated: (row: Task) => new Date(row.dueDate).toLocaleDateString(),
+        isCompleted: (row: Task) => (
+          <span className={row.isCompleted ? "text-green-600" : "text-red-500"}>
+            {row.isCompleted ? "Yes" : "No"}
+          </span>
+        ),
+      };
 
-    // Generating dynamic columns using the returned data fields.
-    setDynamicColumns(
-      GenerateColumns<Task>(
-        response.data[0],
-        ["userId", "_id", "__v"],
-        bodyTemplates
-      )
-    );
-  } 
-   catch (error) {
-    console.error("Error fetching tasks:", error);
-    setTasks([]); // Ensure tasks is never undefined
-  }
-}
-
-
+      // Generating dynamic columns using the returned data fields.
+      setDynamicColumns(
+        GenerateColumns<Task>(
+          response.data[0],
+          ["userId", "_id", "__v"],
+          bodyTemplates
+        )
+      );
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+      setTasks([]); // Ensure tasks is never undefined
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -105,13 +103,28 @@ const TaskPage = () => {
     }
   };
 
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+
+  const menuModel: MenuItem[] = [
+    {
+      label: "Edit",
+      icon: "pi pi-pencil",
+      command: () => console.log("Edit", selectedTask),
+    },
+    {
+      label: "Delete",
+      icon: "pi pi-trash",
+      command: () => console.log("Delete", selectedTask),
+    },
+  ];
+
   return (
     <div className="p-6">
       <Toast ref={toast} />
 
       {/* Create New Task Button */}
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold">Tasks</h2>
+        <h2 className="text-xl font-bold dark: text-amber-50">Tasks</h2>
         <Button
           label="Create New Task"
           icon="pi pi-plus"
@@ -131,7 +144,14 @@ const TaskPage = () => {
         <Column field="isCompleted" header="Completed" body={(rowData) => (rowData.isCompleted ? "Yes" : "No")} />
       </DataTable> */}
 
-      <DataTableComponent value={tasks} columns={dynamicColumns} paginator = {true} />
+      <DataTableComponent
+        value={tasks}
+        columns={dynamicColumns}
+        paginator={true}
+        contextMenuModel={menuModel}
+        contextMenuSelection={selectedTask}
+        onContextMenuSelectionChange={setSelectedTask}
+      />
 
       {/* Task Creation Modal */}
       <Dialog
